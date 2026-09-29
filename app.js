@@ -59,6 +59,25 @@
     memoryState=state;
     try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{}
   }
+  function applyMacProjection(projection){
+    const current=readState(),canonicalIds=new Set(projection.entries.map(e=>e.id));
+    const pending=current.entries.filter(e=>e.pendingMobile&&!canonicalIds.has(e.id));
+    const entries=projection.entries.map(e=>({
+      id:e.id,kind:e.kind,occurredAt:e.occurredAt,createdAt:e.occurredAt,
+      data:structuredClone(e.data),note:e.note||'',device:null,topic:e.topic||null,
+      source:{channel:'telegram',device:null},pendingMobile:false
+    }));
+    const reminders=projection.reminders.map(r=>({
+      id:r.id,text:r.text,note:r.note||'',dueAt:r.dueAt,repeat:r.repeat,done:false
+    }));
+    writeState({schema:'b2-canonical',entries:[...entries,...pending],reminders});
+    render();
+  }
+  function updateB2Status(status){
+    const link=$('macLinkStatus'),sync=$('syncStatus');
+    if(link)link.textContent=status.paired?'Сопряжено':'Не сопряжено';
+    if(sync)sync.textContent=status.syncing?'Синхронизация…':status.message||'—';
+  }
   function uid(){return crypto.randomUUID?crypto.randomUUID():'demo-'+Date.now()+'-'+Math.random().toString(16).slice(2);}
   function fmtDate(value,short=false){
     return new Date(value).toLocaleString('ru-RU',short?{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}:{day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'});
@@ -205,7 +224,7 @@
       row.append(check,main,due);list.append(row);
     });
   }
-  function renderMedcard(){}
+  function renderMedcard(){void window.PultB2Sync?.emitStatus?.();}
 
   function setView(view){
     if(sheetMode)closeSheet();
@@ -251,14 +270,14 @@
   function openEntry(kind){
     const mode='entry:'+kind;if(sheetMode===mode){closeSheet();return;}
     document.querySelectorAll('.quick').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.kind===kind)));
-    showSheet(mode,labels[kind],'БЫСТРАЯ ЗАПИСЬ · A2');buildEntryForm(kind);
+    showSheet(mode,labels[kind],'БЫСТРАЯ ЗАПИСЬ · B2');buildEntryForm(kind);
   }
   function buildEntryForm(kind){
     const host=$('sheetBody'),key='kind:'+kind;
     const draft=drafts.get(key)||{dirty:false,values:{occurredLocal:localNow(),pressureMode:'pressure'}};
     drafts.set(key,draft);const v=draft.values;
     const form=document.createElement('form');form.noValidate=true;
-    const notice=document.createElement('p');notice.className='notice';notice.textContent='Прототип A2: запись сохраняется только в изолированном тестовом состоянии браузера.';form.append(notice);
+    const notice=document.createElement('p');notice.className='notice';notice.textContent='B2: запись сначала сохраняется на устройстве и ждёт Mac, если связь недоступна.';form.append(notice);
     if(kind==='body'){
       const w=field('Вес · кг','weightKg','text',v.weightKg),waist=field('Талия · см','waistCm','text',v.waistCm);w.input.inputMode=waist.input.inputMode='decimal';form.append(row2(w,waist));
     }else if(kind==='pressure'){
@@ -291,7 +310,13 @@
     const save=document.createElement('button');save.type='submit';save.className='primary';save.textContent='Сохранить';actions.append(cancel,save);form.append(actions);host.replaceChildren(form);
     form.addEventListener('input',()=>capture(form,draft));form.addEventListener('change',()=>capture(form,draft));
     cancel.addEventListener('click',()=>{drafts.delete(key);setClosingGuard();closeSheet();});
-    form.addEventListener('submit',event=>{event.preventDefault();capture(form,draft);error.textContent='';try{saveDraft(kind,draft);drafts.delete(key);setClosingGuard();closeSheet();render();haptic('medium');flash('Тестовая запись сохранена');}catch(e){error.textContent=e.message;haptic('rigid');}});
+    form.addEventListener('submit',async event=>{event.preventDefault();capture(form,draft);error.textContent='';try{
+      const entry=saveDraft(kind,draft);
+      await window.PultB2Sync?.enqueueEntry?.(entry);
+      drafts.delete(key);setClosingGuard();closeSheet();render();haptic('medium');
+      flash('Тестовая запись сохранена · ждёт Mac');
+      void window.PultB2Sync?.syncNow?.({quiet:true});
+    }catch(e){error.textContent=e.message;haptic('rigid');}});
     requestAnimationFrame(()=>form.querySelector('input,textarea,select')?.focus());
   }
 
@@ -309,7 +334,9 @@
     }else if(kind==='medicine'){data={name:(v.name||'').trim(),doseText:(v.doseText||'').trim()};if(!data.name)throw Error('Укажите название того, что принято.');}
     else if(kind==='load'){data={name:(v.name||'').trim(),durationMin:numeric(v.durationMin,'Длительность'),after:v.after||null};if(!data.name)throw Error('Укажите действие.');}
     else{data={text:(v.text||'').trim()};if(!data.text)throw Error('Введите собственный текст наблюдения.');}
-    const state=readState();state.entries.push({id:uid(),kind,occurredAt:new Date(v.occurredLocal).toISOString(),createdAt:new Date().toISOString(),data,note:v.note||'',device:v.device||null,topic:v.topic||null,source:{channel:'manual',device:v.device||null}});writeState(state);
+    const state=readState();
+    const entry={id:uid(),kind,occurredAt:new Date(v.occurredLocal).toISOString(),createdAt:new Date().toISOString(),data,note:v.note||'',device:v.device||null,topic:v.topic||null,source:{channel:'manual',device:v.device||null},pendingMobile:true};
+    state.entries.push(entry);writeState(state);return entry;
   }
 
   function openReminder(){
@@ -333,27 +360,41 @@
     requestAnimationFrame(()=>textField.input.focus());
   }
 
-  function openTransferPreview(){
-    showSheet('transfer','Тестовый пакет','ПЕРЕДАЧА ЦЕЛИТЕЛЮ · A2');
-    const host=$('sheetBody'),notice=document.createElement('p');notice.className='notice';
-    notice.textContent='Это только предпросмотр. Никакая отправка, синхронизация с Mac или изменение Медкарты не выполняются.';
-    const state=readState(),entries=state.entries.slice().sort((a,b)=>Date.parse(b.occurredAt)-Date.parse(a.occurredAt)).slice(0,8);
-    const pre=document.createElement('pre');pre.className='preview-block';
-    pre.textContent=['# Наблюдения из Пульта Целителя','',...entries.map(e=>fmtDate(e.occurredAt,true)+' · '+(labels[e.kind]||e.kind)+' · '+description(e))].join('\n');
-    const close=document.createElement('button');close.type='button';close.className='primary full';close.textContent='Закрыть предпросмотр';close.addEventListener('click',closeSheet);
-    host.append(notice,pre,close);
+  function openPairing(){
+    showSheet('pair','Связь с Mac','B2 · СОПРЯЖЕНИЕ');
+    const host=$('sheetBody'),form=document.createElement('form');form.noValidate=true;
+    const notice=document.createElement('p');notice.className='notice';
+    notice.textContent='Вставьте код сопряжения с Mac. Он сохраняется в защищённом хранилище Telegram и не относится к Медкарте.';
+    const code=field('Код сопряжения','pairing','textarea','');
+    const error=document.createElement('div');error.className='form-error';error.setAttribute('role','alert');
+    const actions=document.createElement('div');actions.className='form-actions';
+    const cancel=document.createElement('button');cancel.type='button';cancel.className='ghost';cancel.textContent='Отмена';
+    const save=document.createElement('button');save.type='submit';save.className='primary';save.textContent='Сопрячь';
+    actions.append(cancel,save);form.append(notice,code.wrap,error,actions);host.append(form);
+    cancel.addEventListener('click',closeSheet);
+    form.addEventListener('submit',async e=>{e.preventDefault();error.textContent='';try{
+      await window.PultB2Sync.setPairing(code.input.value);
+      closeSheet();render();flash('Mac сопряжён');void window.PultB2Sync.syncNow({quiet:true});
+    }catch(err){error.textContent=err.message;haptic('rigid');}});
+    requestAnimationFrame(()=>code.input.focus());
   }
 
   document.querySelectorAll('.quick').forEach(b=>{b.setAttribute('aria-pressed','false');b.addEventListener('click',()=>{haptic();openEntry(b.dataset.kind);});});
   document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
   document.querySelectorAll('[data-dyn]').forEach(b=>b.addEventListener('click',()=>{dynMode=b.dataset.dyn;renderDynamics();haptic();}));
   $('closeSheet').addEventListener('click',closeSheet);$('sheetBackdrop').addEventListener('click',closeSheet);
-  $('addReminder').addEventListener('click',openReminder);$('previewTransfer').addEventListener('click',openTransferPreview);
+  $('addReminder').addEventListener('click',openReminder);
+  $('pairMac').addEventListener('click',openPairing);
+  $('syncNow').addEventListener('click',()=>{void window.PultB2Sync?.syncNow?.();});
   $('resetDemo').addEventListener('click',()=>{
     if(!window.confirm('Сбросить только тестовые данные A2?'))return;
     writeState(defaultState());drafts.clear();setClosingGuard();render();flash('Тестовые данные восстановлены');
   });
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sheetMode){e.preventDefault();closeSheet();}});
-  initTelegram();setView('today');
+  window.PultB2Sync?.configure?.({applyProjection:applyMacProjection,onStatus:updateB2Status});
+  window.addEventListener('online',()=>{void window.PultB2Sync?.syncNow?.({quiet:true});});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)void window.PultB2Sync?.syncNow?.({quiet:true});});
+  try{tg?.onEvent?.('activated',()=>{void window.PultB2Sync?.syncNow?.({quiet:true});});}catch{}
+  initTelegram();setView('today');void window.PultB2Sync?.init?.();
 })();
 
