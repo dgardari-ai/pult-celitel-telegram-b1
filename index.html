@@ -6,6 +6,8 @@
   <meta name="theme-color" content="#F5F6F7">
   <title>[пульт целителя] — Telegram A2</title>
   <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+  <script src="b2-config.js"></script>
+  <script src="b2-sync.js" defer></script>
   <link rel="stylesheet" href="styles.css">
   <script src="app.js" defer></script>
 </head>
@@ -16,7 +18,7 @@
         <div class="brandmark" aria-hidden="true">+</div>
         <b>[пульт целителя]</b>
       </div>
-      <span class="test-badge">A2 · ТЕСТОВЫЕ ДАННЫЕ</span>
+      <span class="test-badge">B2 · ТЕСТОВЫЕ ДАННЫЕ</span>
     </header>
 
     <main class="main" id="main">
@@ -89,17 +91,20 @@
         <section class="hero">
           <div class="eyebrow">КАНОНИЧЕСКИЙ ДОКУМЕНТ · ОТДЕЛЬНЫЙ КОНТУР</div>
           <h1>Медкарта</h1>
-          <p>Telegram-ввод пока остаётся отдельным тестовым слоем. Реальная доставка в Mac и работа с Медкартой относятся к следующему инженерному переходу.</p>
+          <p>Telegram и Mac связаны только в тестовом контуре B2. Личные медицинские данные и рабочая Медкарта здесь пока не используются.</p>
         </section>
         <section class="status-list">
-          <div class="status-row"><span>Медкарта</span><b>Не читается из A2</b><em>ИСТОЧНИК</em></div>
-          <div class="status-row"><span>Наблюдения</span><b>Только тестовый контур</b><em>ЛОКАЛЬНО</em></div>
-          <div class="status-row"><span>Связь с Mac</span><b>Ещё не подключена</b><em>ЭТАП B</em></div>
+          <div class="status-row"><span>Медкарта</span><b>Не подключена к B2</b><em>ИСТОЧНИК</em></div>
+          <div class="status-row"><span>Связь с Mac</span><b id="macLinkStatus">Не сопряжено</b><em>B2</em></div>
+          <div class="status-row"><span>Очередь</span><b id="syncStatus">Проверяю…</b><em>OUTBOX</em></div>
         </section>
         <section class="section compact-section">
-          <div class="section-head"><h2>Передача Целителю</h2><span>ПРЕДПРОСМОТР · БЕЗ ОТПРАВКИ</span></div>
-          <p class="view-note">A2 может показать, что именно было бы передано. Никакая внешняя отправка или изменение Медкарты сейчас не выполняются.</p>
-          <button class="primary full" id="previewTransfer" type="button">Подготовить тестовый пакет</button>
+          <div class="section-head"><h2>Связь с Mac</h2><span>B2 · ТОЛЬКО ТЕСТ</span></div>
+          <p class="view-note">Записи сначала сохраняются на устройстве. Если Mac недоступен, они ждут в локальной очереди и отправятся позже.</p>
+          <div class="form-actions">
+            <button class="ghost" id="pairMac" type="button">Сопрячь Mac</button>
+            <button class="primary" id="syncNow" type="button">Синхронизировать</button>
+          </div>
         </section>
       </section>
     </main>
@@ -128,4 +133,3 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
-
