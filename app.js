@@ -310,13 +310,24 @@
     const save=document.createElement('button');save.type='submit';save.className='primary';save.textContent='Сохранить';actions.append(cancel,save);form.append(actions);host.replaceChildren(form);
     form.addEventListener('input',()=>capture(form,draft));form.addEventListener('change',()=>capture(form,draft));
     cancel.addEventListener('click',()=>{drafts.delete(key);setClosingGuard();closeSheet();});
-    form.addEventListener('submit',async event=>{event.preventDefault();capture(form,draft);error.textContent='';try{
-      const entry=saveDraft(kind,draft);
-      await window.PultB2Sync?.enqueueEntry?.(entry);
-      drafts.delete(key);setClosingGuard();closeSheet();render();haptic('medium');
-      flash('Тестовая запись сохранена · ждёт Mac');
-      void window.PultB2Sync?.syncNow?.({quiet:true});
-    }catch(e){error.textContent=e.message;haptic('rigid');}});
+    form.addEventListener('submit',async event=>{
+      event.preventDefault();
+      if(form.dataset.submitting==='1')return;
+      capture(form,draft);error.textContent='';
+      form.dataset.submitting='1';save.disabled=true;cancel.disabled=true;save.textContent='Сохраняю…';
+      try{
+        const entry=saveDraft(kind,draft);
+        await window.PultB2Sync?.enqueueEntry?.(entry);
+        drafts.delete(key);setClosingGuard();closeSheet();render();haptic('medium');
+        flash('Сохранено на устройстве · отправляю на Mac');
+        const delivery=await window.PultB2Sync?.syncNow?.({quiet:true});
+        if(delivery?.confirmed?.includes(entry.id))flash('Доставлено на Mac');
+        else flash('Сохранено · ждёт Mac');
+      }catch(e){
+        error.textContent=e.message;haptic('rigid');
+        form.dataset.submitting='0';save.disabled=false;cancel.disabled=false;save.textContent='Сохранить';
+      }
+    });
     requestAnimationFrame(()=>form.querySelector('input,textarea,select')?.focus());
   }
 

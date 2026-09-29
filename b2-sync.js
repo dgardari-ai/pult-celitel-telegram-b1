@@ -6,7 +6,7 @@
   const OUTBOX_KEY='pult_b2_outbox_v1';
   const PAIR_KEY='pult_b2_pairing_v1';
   let callbacks={applyProjection:null,onStatus:null};
-  let syncing=false,lastError=null;
+  let syncing=false,lastError=null,lastDeliveryAt=null;
 
   const apiBase=()=>String(window.PULT_B2_API_BASE||'').replace(/\/+$/,'');
   const fallbackKey=key=>'pult-b2-fallback-'+key;
@@ -146,7 +146,8 @@
     return response;
   }
   async function syncNow({quiet=false}={}){
-    if(syncing)return false;syncing=true;
+    if(syncing)return {ok:false,busy:true,pending:(await readOutbox()).length,confirmed:[]};
+    syncing=true;
     try{
       const pair=await getPairing();
       if(!pair)throw new Error('Сначала сопрягите Mini App с Mac.');
@@ -189,12 +190,13 @@
       }
       if(projection)callbacks.applyProjection?.(projection);
       lastError=null;
-      if(!quiet&&outbox.length===0)callbacks.onStatus?.({message:'Синхронизировано'});
-      return true;
+      if(confirmed.length)lastDeliveryAt=new Date().toISOString();
+      if(!quiet&&confirmed.length&&outbox.length===0)callbacks.onStatus?.({message:'Доставлено на Mac'});
+      return {ok:true,pending:outbox.length,confirmed,projectionApplied:!!projection};
     }catch(error){
       lastError=error.message||String(error);
       if(!quiet)callbacks.onStatus?.({message:lastError,error:true});
-      return false;
+      return {ok:false,error:lastError,pending:(await readOutbox()).length,confirmed:[]};
     }finally{syncing=false;await emitStatus();}
   }
   async function emitStatus(){
@@ -205,7 +207,7 @@
       apiConfigured:!!apiBase(),
       syncing,
       error:lastError,
-      message:lastError||(!pair?'Не сопряжено':!apiBase()?'HTTPS ещё не настроен':outbox.length?outbox.length+' ждут Mac':'Готово')
+      message:lastError||(!pair?'Не сопряжено':!apiBase()?'HTTPS ещё не настроен':outbox.length?outbox.length+' ждут Mac':lastDeliveryAt?'Доставлено на Mac':'Готово')
     });
   }
   function configure(next){callbacks={...callbacks,...next};}
