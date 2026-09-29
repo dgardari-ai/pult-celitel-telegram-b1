@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F5F6F7">
+  <title>[пульт целителя] — Telegram A2</title>
+  <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+  <style>@font-face{font-family:"Alumni Sans";src:url("../src/fonts/AlumniSans.ttf") format("truetype");font-weight:100 900;font-display:swap}
+@font-face{font-family:"Golos Text";src:url("../src/fonts/GolosText.ttf") format("truetype");font-weight:100 900;font-display:swap}
+@font-face{font-family:"PT Mono";src:url("../src/fonts/PTMono.ttf") format("truetype");font-weight:400;font-display:swap}
+
+:root{
+  --bg:#F5F6F7;--surface:#FAFBFC;--surface2:#ECEFF2;--ink:#16181C;--muted:#66707B;
+  --line:#CDD3DA;--line2:#ADB5BE;--focus:#0B8F88;--focusSoft:#E5F2F1;--source:#536B87;
+  --red:#D84B4B;--warn:#FFBA00;--safe-top:var(--tg-content-safe-area-inset-top,0px);
+  --safe-bottom:var(--tg-content-safe-area-inset-bottom,0px);--stable-h:var(--tg-viewport-stable-height,100dvh);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-width:100%;min-height:100%;background:var(--bg);color:var(--ink);font-family:"Golos Text",sans-serif}
+body{min-height:var(--stable-h);overscroll-behavior-y:none}
+button,input,textarea,select{font:inherit;color:inherit}
+button{touch-action:manipulation}
+[hidden]{display:none!important}
+
+.app-shell{min-height:var(--stable-h);padding-bottom:calc(76px + var(--safe-bottom))}
+.topbar{
+  position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:54px;padding:calc(8px + var(--safe-top)) 14px 8px;background:rgba(250,251,252,.97);
+  border-bottom:1px solid var(--line);backdrop-filter:blur(12px)
+}
+.brand{display:flex;align-items:center;gap:9px;min-width:0;white-space:nowrap}
+.brand b{font-size:13px;letter-spacing:.055em;overflow:hidden;text-overflow:ellipsis}
+.brandmark{width:20px;height:20px;flex:0 0 auto;display:grid;place-items:center;background:var(--red);border:1px solid #C94141;color:#fff;font-size:13px;font-weight:700}
+.test-badge{font-family:"PT Mono";font-size:8px;line-height:1.25;color:var(--source);border:1px solid var(--line);padding:5px 6px;text-align:center;white-space:nowrap}
+
+.main{width:min(100%,620px);margin:0 auto;padding:16px 14px 28px}
+.hero{padding:4px 0 2px}
+.eyebrow,.kicker{font-family:"PT Mono";font-size:9px;letter-spacing:.08em;color:var(--source)}
+.hero h1{margin:3px 0 4px;font-family:"Alumni Sans";font-size:50px;line-height:.9;font-weight:100;letter-spacing:-.01em}
+.hero p{margin:0;max-width:530px;color:var(--muted);font-size:11px;line-height:1.48}
+
+.section{margin-top:20px;padding-top:13px;border-top:1px solid var(--line)}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.section-head h2{margin:0;font-size:12px}
+.section-head>span{font-family:"PT Mono";font-size:8px;line-height:1.45;color:var(--muted);text-align:right}
+
+.quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.quick{
+  position:relative;height:84px;border:0;background:var(--surface);padding:11px 42px 12px 12px;text-align:left;cursor:pointer
+}
+.quick:active,.quick[aria-pressed="true"]{background:var(--focusSoft)}
+.quick small{display:block;font-family:"PT Mono";font-size:8px;color:var(--source);margin-bottom:13px}
+.quick strong{display:block;font-size:16px;font-weight:500;line-height:1.18}
+.quick i{position:absolute;right:10px;bottom:11px;width:26px;height:26px;display:grid;place-items:center;border:1px solid var(--line2);font-family:"PT Mono";font-size:15px;font-style:normal;background:var(--surface)}
+
+.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:16px}
+.metric{min-width:0;background:var(--surface);padding:10px 10px 9px}
+.metric-label{font-family:"PT Mono";font-size:8px;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+.metric-line{display:flex;align-items:baseline;gap:4px;min-width:0;margin-top:7px}
+.metric-value{font-family:"Alumni Sans";font-size:29px;line-height:.95;font-weight:500;color:var(--red);white-space:nowrap}
+.metric-unit{font-family:"PT Mono";font-size:7px;color:var(--muted)}
+.metric-date{margin-top:6px;font-family:"PT Mono";font-size:7px;line-height:1.4;color:var(--muted)}
+.metric-empty{display:block;margin-top:9px;font-size:11px;color:var(--muted)}
+
+.stream{border-top:1px solid var(--line)}
+.entry{display:grid;grid-template-columns:62px 86px minmax(0,1fr);gap:9px;padding:12px 0;border-bottom:1px solid var(--line)}
+.entry-time{font-family:"PT Mono";font-size:8px;line-height:1.5;color:var(--muted)}
+.entry-type{font-size:10px;font-weight:500;line-height:1.45}
+.entry-desc{font-size:11px;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}
+.empty{padding:19px 0;color:var(--muted);font-size:11px;line-height:1.6}
+.reset{border:0;background:transparent;padding:6px 0;font-family:"PT Mono";font-size:8px;color:var(--source);cursor:pointer}
+
+.sheet-backdrop{position:fixed;inset:0;z-index:30;background:rgba(22,24,28,.22)}
+.sheet{
+  position:fixed;z-index:31;left:0;right:0;bottom:0;max-height:min(88dvh,720px);display:flex;flex-direction:column;
+  background:var(--surface);border-top:1px solid var(--line2);transform:translateY(102%);transition:transform .18s ease;
+  padding-bottom:var(--safe-bottom);box-shadow:0 -14px 38px rgba(22,24,28,.09)
+}
+.sheet.open{transform:translateY(0)}
+.sheet-handle{width:36px;height:3px;margin:7px auto 0;background:var(--line2);border-radius:999px}
+.sheet-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;padding:12px 16px;border-bottom:1px solid var(--line)}
+.sheet-head h2{margin:4px 0 0;font-size:17px}
+.close{border:0;background:transparent;padding:0 2px;font-size:26px;line-height:1;color:var(--muted);cursor:pointer}
+.sheet-body{overflow:auto;padding:16px 16px calc(18px + var(--safe-bottom))}
+.notice{margin:0 0 14px;padding-left:10px;border-left:2px solid var(--warn);font-size:10px;line-height:1.5;color:var(--muted)}
+.mode-row{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:14px}
+.mode-row button{border:0;background:var(--surface);padding:9px 8px;font-size:10px;cursor:pointer}
+.mode-row button.active{background:var(--focusSoft);box-shadow:inset 0 2px var(--focus)}
+
+.field{margin-bottom:12px}
+.field label{display:block;margin-bottom:5px;font-family:"PT Mono";font-size:8px;color:var(--muted);text-transform:uppercase}
+.field input,.field textarea,.field select{
+  width:100%;border:1px solid var(--line);border-radius:0;background:#fff;padding:11px 10px;font-size:13px;outline:none
+}
+.field textarea{min-height:92px;resize:vertical}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--focus);box-shadow:inset 2px 0 var(--focus)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.field-hint{margin-top:5px;color:var(--muted);font-size:9px;line-height:1.45}
+details.more{margin:4px 0 14px;border-top:1px solid var(--line);padding-top:10px}
+details.more summary{font-size:10px;color:var(--source);cursor:pointer}
+details.more[open] summary{margin-bottom:12px}
+
+.form-error{min-height:18px;margin:4px 0 0;color:#A12C2C;font-size:10px;line-height:1.5}
+.form-actions{display:grid;grid-template-columns:1fr 1.35fr;gap:8px;margin-top:14px}
+.ghost,.primary{min-height:44px;border:1px solid var(--line);padding:10px;font-size:11px;cursor:pointer}
+.ghost{background:transparent}
+.primary{border-color:var(--ink);background:var(--ink);color:#fff}
+.toast{position:fixed;z-index:50;left:50%;bottom:calc(18px + var(--safe-bottom));transform:translate(-50%,12px);max-width:calc(100% - 32px);padding:9px 11px;background:#121418;color:#fff;font-size:10px;line-height:1.4;opacity:0;pointer-events:none;transition:.16s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+button:focus-visible,summary:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+body.sheet-open{overflow:hidden}
+@media (min-width:560px){
+  .main{padding-left:20px;padding-right:20px}
+  .quick-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .sheet{left:50%;right:auto;width:min(520px,100%);transform:translate(-50%,102%)}
+  .sheet.open{transform:translate(-50%,0)}
+}
+@media (max-width:360px){
+  .brand b{font-size:11px}.test-badge{font-size:7px}.quick{height:84px}.quick strong{font-size:14px}
+  .metric-value{font-size:27px}.metric{padding-left:8px;padding-right:8px}.entry{grid-template-columns:56px 78px minmax(0,1fr);gap:7px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+/* A2: mobile sections and navigation */
+.view{display:none}
+.view.active{display:block}
+.bottom-nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:20;
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  background:rgba(250,251,252,.98);border-top:1px solid var(--line);
+  padding-bottom:var(--safe-bottom);backdrop-filter:blur(12px)
+}
+.bottom-nav button{
+  min-width:0;height:64px;border:0;border-right:1px solid var(--line);
+  background:var(--surface);padding:7px 4px 6px;cursor:pointer;color:#3F4852;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px
+}
+.bottom-nav button:last-child{border-right:0}
+.bottom-nav small{font-family:"PT Mono";font-size:8px;color:var(--source)}
+.bottom-nav span{font-size:10.5px;font-weight:600;line-height:1.1;white-space:nowrap}
+.bottom-nav button.active{color:var(--ink);background:#fff;box-shadow:inset 0 3px var(--warn)}
+.bottom-nav button.active small{color:var(--ink)}
+
+.switch-scroll{
+  display:flex;gap:1px;overflow-x:auto;scrollbar-width:none;
+  margin:18px 0 0;border:1px solid var(--line);background:var(--line)
+}
+.switch-scroll::-webkit-scrollbar{display:none}
+.switch-scroll button{
+  flex:0 0 auto;border:0;background:var(--surface);padding:9px 11px;
+  font-size:9px;white-space:nowrap;cursor:pointer;color:var(--muted)
+}
+.switch-scroll button.active{background:#fff;color:var(--ink);box-shadow:inset 0 2px var(--focus)}
+
+.chart-card{
+  margin-top:14px;border:1px solid var(--line);background:var(--surface);padding:13px 12px 10px;min-height:236px
+}
+.chart-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}
+.chart-head b{font-size:11px}
+.chart-head span{font-family:"PT Mono";font-size:8px;line-height:1.5;color:var(--muted);text-align:right}
+.chart-svg{display:block;width:100%;height:164px;overflow:visible}
+.chart-grid{stroke:var(--line);stroke-width:1}
+.chart-line{fill:none;stroke:var(--focus);stroke-width:2}
+.chart-line.secondary{stroke:var(--source)}
+.chart-dot{fill:var(--surface);stroke:var(--focus);stroke-width:2}
+.chart-dot.secondary{stroke:var(--source)}
+.chart-axis{font:8px "PT Mono";fill:var(--muted)}
+.chart-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-family:"PT Mono";font-size:8px;color:var(--muted)}
+.chart-legend i{display:inline-block;width:14px;height:2px;margin-right:5px;background:var(--focus);vertical-align:middle}
+.chart-legend i.secondary{background:var(--source)}
+.chart-empty{display:grid;place-items:center;min-height:190px;text-align:center;color:var(--muted);font-size:11px;line-height:1.6}
+
+.view-action{display:flex;justify-content:flex-end;margin-top:18px}
+.view-action .primary{min-width:150px}
+.compact-section{margin-top:20px}
+.reminder-list{border-top:1px solid var(--line)}
+.reminder-item{
+  display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:10px;
+  align-items:start;padding:14px 0;border-bottom:1px solid var(--line)
+}
+.reminder-check{
+  width:18px;height:18px;border:1px solid var(--line2);background:transparent;cursor:pointer;padding:0
+}
+.reminder-check.done{background:var(--focus);border-color:var(--focus)}
+.reminder-check.done::after{content:"✓";color:#fff;font-size:11px}
+.reminder-main b{display:block;font-size:11px;font-weight:500}
+.reminder-main p{margin:4px 0 0;color:var(--muted);font-size:9px;line-height:1.45}
+.reminder-due{font-family:"PT Mono";font-size:8px;line-height:1.55;color:var(--source);text-align:right;white-space:nowrap}
+.reminder-item.done .reminder-main{opacity:.55}
+
+.status-list{margin-top:20px;border-top:1px solid var(--line)}
+.status-row{
+  display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:9px;
+  align-items:center;padding:12px 0;border-bottom:1px solid var(--line)
+}
+.status-row span{font-size:10px}
+.status-row b{font-size:10px;font-weight:500}
+.status-row em{font-family:"PT Mono";font-size:7px;font-style:normal;color:var(--source)}
+.view-note{margin:0 0 14px;color:var(--muted);font-size:10px;line-height:1.55}
+.primary.full{width:100%}
+.preview-block{
+  white-space:pre-wrap;background:var(--surface2);border:1px solid var(--line);
+  padding:11px;font-family:"PT Mono";font-size:8px;line-height:1.55;color:#2C333B;max-height:330px;overflow:auto
+}
+
+
+/* A2.2: readable native selects on mobile */
+.field select{
+  -webkit-appearance:none;
+  appearance:none;
+  padding-right:40px;
+  background-color:#fff;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%233F4852' stroke-width='1.5' stroke-linecap='square'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  background-size:12px 8px;
+}
+</style>
+  
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brandmark" aria-hidden="true">+</div>
+        <b>[пульт целителя]</b>
+      </div>
+      <span class="test-badge">A2 · ТЕСТОВЫЕ ДАННЫЕ</span>
+    </header>
+
+    <main class="main" id="main">
+      <section class="view active" id="todayView">
+        <section class="hero">
+          <div class="eyebrow" id="todayDate"></div>
+          <h1>Сегодня</h1>
+          <p>Быстрый вход в наблюдение за телом. Запись занимает несколько секунд; медицинский смысл появляется позже — в Целителе и Медкарте.</p>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <h2>Быстрая запись</h2>
+            <span>ОДНО ДЕЙСТВИЕ → ОДНА ЗАПИСЬ</span>
+          </div>
+          <div class="quick-grid" id="quickGrid">
+            <button class="quick" data-kind="body"><small>01</small><strong>Вес / Талия</strong><i>+</i></button>
+            <button class="quick" data-kind="pressure"><small>02</small><strong>Давление</strong><i>+</i></button>
+            <button class="quick" data-kind="feeling"><small>03</small><strong>Самочувствие</strong><i>+</i></button>
+            <button class="quick" data-kind="medicine"><small>04</small><strong>Лекарство</strong><i>+</i></button>
+            <button class="quick" data-kind="load"><small>05</small><strong>Нагрузка</strong><i>+</i></button>
+            <button class="quick" data-kind="note"><small>06</small><strong>Заметка</strong><i>+</i></button>
+          </div>
+        </section>
+
+        <section class="metrics" id="metrics" aria-label="Последние показатели"></section>
+
+        <section class="section">
+          <div class="section-head">
+            <h2>Последние записи</h2>
+            <button class="reset" id="resetDemo" type="button">СБРОСИТЬ ТЕСТ</button>
+          </div>
+          <div class="stream" id="stream"></div>
+        </section>
+      </section>
+
+      <section class="view" id="dynamicsView">
+        <section class="hero">
+          <div class="eyebrow">НАБЛЮДЕНИЕ · НЕ ДИАГНОСТИКА</div>
+          <h1>Динамика</h1>
+          <p>Те же наблюдения, собранные во времени. Линии соединяют только фактические тестовые замеры и не создают медицинских выводов.</p>
+        </section>
+        <div class="switch-scroll" id="dynamicsSwitch">
+          <button class="active" data-dyn="body">Вес / талия</button>
+          <button data-dyn="pressure">Давление</button>
+          <button data-dyn="pulse">Пульс / HRV</button>
+          <button data-dyn="qualitative">Самочувствие / нагрузка</button>
+        </div>
+        <section class="chart-card" id="chartCard"></section>
+        <section class="section">
+          <div class="section-head"><h2>Исходные записи</h2><span>ТЕСТОВЫЙ РЯД</span></div>
+          <div class="stream" id="dynamicsStream"></div>
+        </section>
+      </section>
+
+      <section class="view" id="remindersView">
+        <section class="hero">
+          <div class="eyebrow">ТОЛЬКО ВЫБРАННЫЕ ДЕЙСТВИЯ</div>
+          <h1>Напоминания</h1>
+          <p>Mini App ничего не назначает сам. Здесь можно удерживать только уже выбранные измерения и действия.</p>
+        </section>
+        <div class="view-action"><button class="primary" id="addReminder" type="button">+ Напоминание</button></div>
+        <section class="section compact-section">
+          <div class="section-head"><h2>Выбранные действия</h2><span id="reminderCount"></span></div>
+          <div class="reminder-list" id="reminderList"></div>
+        </section>
+      </section>
+
+      <section class="view" id="medcardView">
+        <section class="hero">
+          <div class="eyebrow">КАНОНИЧЕСКИЙ ДОКУМЕНТ · ОТДЕЛЬНЫЙ КОНТУР</div>
+          <h1>Медкарта</h1>
+          <p>Telegram-ввод пока остаётся отдельным тестовым слоем. Реальная доставка в Mac и работа с Медкартой относятся к следующему инженерному переходу.</p>
+        </section>
+        <section class="status-list">
+          <div class="status-row"><span>Медкарта</span><b>Не читается из A2</b><em>ИСТОЧНИК</em></div>
+          <div class="status-row"><span>Наблюдения</span><b>Только тестовый контур</b><em>ЛОКАЛЬНО</em></div>
+          <div class="status-row"><span>Связь с Mac</span><b>Ещё не подключена</b><em>ЭТАП B</em></div>
+        </section>
+        <section class="section compact-section">
+          <div class="section-head"><h2>Передача Целителю</h2><span>ПРЕДПРОСМОТР · БЕЗ ОТПРАВКИ</span></div>
+          <p class="view-note">A2 может показать, что именно было бы передано. Никакая внешняя отправка или изменение Медкарты сейчас не выполняются.</p>
+          <button class="primary full" id="previewTransfer" type="button">Подготовить тестовый пакет</button>
+        </section>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Разделы Пульта">
+      <button class="active" data-view="today" aria-current="page"><small>01</small><span>Сегодня</span></button>
+      <button data-view="dynamics"><small>02</small><span>Динамика</span></button>
+      <button data-view="reminders"><small>03</small><span>Напоминания</span></button>
+      <button data-view="medcard"><small>04</small><span>Медкарта</span></button>
+    </nav>
+  </div>
+
+  <div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
+  <aside class="sheet" id="sheet" aria-hidden="true" aria-label="Действие">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <div>
+        <div class="kicker" id="sheetKicker">БЫСТРАЯ ЗАПИСЬ · A2</div>
+        <h2 id="sheetTitle">Новая запись</h2>
+      </div>
+      <button class="close" id="closeSheet" type="button" aria-label="Закрыть">×</button>
+    </div>
+    <div class="sheet-body" id="sheetBody"></div>
+  </aside>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>\n'use strict';
+
+(() => {
+  const STORAGE_KEY='pult-celitel-telegram-a1-demo-v1';
+  const labels={body:'Вес / Талия',pressure:'Давление',feeling:'Самочувствие',medicine:'Лекарство',load:'Нагрузка',note:'Заметка'};
+  const effects={easier:'Легче',unchanged:'Без заметного изменения',harder:'Тяжелее'};
+  const tg=window.Telegram?.WebApp||null;
+  const $=id=>document.getElementById(id);
+  const drafts=new Map();
+  let sheetMode=null,toastTimer=null,memoryState=null,currentView='today',dynMode='body';
+
+  function demoEntries(){
+    const now=Date.now(),day=86400000,hour=3600000,entries=[];
+    const body=[
+      [12,69.8,83.0],[9,70.0,82.8],[6,69.9,82.6],[3,70.1,82.4],[1,70.2,82.2],[0.125,70.4,82.0]
+    ];
+    body.forEach(([ago,weight,waist],i)=>entries.push({
+      id:'demo-body-'+i,kind:'body',occurredAt:new Date(now-ago*day).toISOString(),
+      data:{weightKg:weight,waistCm:waist},note:i===body.length-1?'Учебный замер':'',device:'тест',topic:null
+    }));
+    const pressure=[
+      [10,116,75,60,45],[5,120,78,64,43],[2,117,76,62,47],[2/24,118,76,61,48]
+    ];
+    pressure.forEach(([ago,sys,dia,pulse,hrv],i)=>entries.push({
+      id:'demo-pressure-'+i,kind:'pressure',occurredAt:new Date(now-ago*day).toISOString(),
+      data:{systolicMmHg:sys,diastolicMmHg:dia,pulseBpm:pulse,hrvMs:hrv,hrvMethod:'RMSSD',context:i===pressure.length-1?'Учебный пример':null},
+      note:'',device:'тест',topic:null
+    }));
+    entries.push(
+      {id:'demo-feeling',kind:'feeling',occurredAt:new Date(now-26*hour).toISOString(),data:{text:'Учебная запись самочувствия — без медицинского вывода.'},note:'',device:null,topic:null},
+      {id:'demo-load',kind:'load',occurredAt:new Date(now-30*hour).toISOString(),data:{name:'Прогулка',durationMin:35,after:'easier'},note:'Учебный пример',device:null,topic:null},
+      {id:'demo-note',kind:'note',occurredAt:new Date(now-3*day).toISOString(),data:{text:'Учебная заметка для проверки ленты.'},note:'',device:null,topic:null}
+    );
+    return entries;
+  }
+
+  function demoReminders(){
+    const now=Date.now(),hour=3600000,day=86400000;
+    return [
+      {id:'demo-rem-1',text:'Учебное измерение давления',note:'Только демонстрация интерфейса',dueAt:new Date(now+2*hour).toISOString(),repeat:'none',done:false},
+      {id:'demo-rem-2',text:'Учебное выбранное действие',note:'Не назначение',dueAt:new Date(now+day).toISOString(),repeat:'daily',done:false}
+    ];
+  }
+
+  function defaultState(){return {schema:'a2-demo',entries:demoEntries(),reminders:demoReminders()};}
+  function readState(){
+    try{
+      const parsed=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+      if(parsed&&Array.isArray(parsed.entries)){
+        if(!Array.isArray(parsed.reminders))parsed.reminders=demoReminders();
+        parsed.schema='a2-demo';
+        return parsed;
+      }
+    }catch{}
+    if(memoryState)return memoryState;
+    const state=defaultState();writeState(state);return state;
+  }
+  function writeState(state){
+    memoryState=state;
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{}
+  }
+  function uid(){return crypto.randomUUID?crypto.randomUUID():'demo-'+Date.now()+'-'+Math.random().toString(16).slice(2);}
+  function fmtDate(value,short=false){
+    return new Date(value).toLocaleString('ru-RU',short?{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}:{day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'});
+  }
+  function localNow(value=Date.now()){
+    const d=new Date(value);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  }
+  function n(value){return String(value).replace('.',',');}
+  function flash(text){
+    clearTimeout(toastTimer);$('toast').textContent=text;$('toast').classList.add('show');
+    toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3200);
+  }
+  function haptic(type='light'){try{tg?.HapticFeedback?.impactOccurred(type);}catch{}}
+  function setClosingGuard(){
+    const dirty=[...drafts.values()].some(x=>x.dirty);
+    try{dirty?tg?.enableClosingConfirmation?.():tg?.disableClosingConfirmation?.();}catch{}
+  }
+  function initTelegram(){
+    if(!tg)return;
+    try{
+      tg.ready();tg.expand();
+      tg.setHeaderColor?.('#FAFBFC');tg.setBackgroundColor?.('#F5F6F7');tg.setBottomBarColor?.('#F5F6F7');
+      tg.BackButton?.onClick(()=>{if(sheetMode)closeSheet();});
+    }catch{}
+  }
+
+  function description(entry){
+    const d=entry.data||{};
+    if(entry.kind==='body')return [d.weightKg!=null?n(d.weightKg)+' кг':null,d.waistCm!=null?'талия '+n(d.waistCm)+' см':null].filter(Boolean).join(' · ');
+    if(entry.kind==='pressure')return [d.systolicMmHg!=null?n(d.systolicMmHg)+'/'+n(d.diastolicMmHg)+' мм рт. ст.':null,d.pulseBpm!=null?'пульс '+n(d.pulseBpm):null,d.hrvMs!=null?'HRV '+n(d.hrvMs)+' мс'+(d.hrvMethod?' · '+d.hrvMethod:''):null,d.context||null].filter(Boolean).join(' · ');
+    if(entry.kind==='feeling'||entry.kind==='note')return d.text;
+    if(entry.kind==='medicine')return [d.name,d.doseText].filter(Boolean).join(' · ');
+    if(entry.kind==='load')return [d.name,d.durationMin!=null?n(d.durationMin)+' мин':null,d.after?effects[d.after]:null].filter(Boolean).join(' · ');
+    return '';
+  }
+  function latest(entries,key){return entries.find(e=>e.data?.[key]!==null&&e.data?.[key]!==undefined&&e.data?.[key]!=='');}
+  function sortedEntries(){return readState().entries.slice().sort((a,b)=>Date.parse(b.occurredAt)-Date.parse(a.occurredAt));}
+  function entryRow(e){
+    const row=document.createElement('div');row.className='entry';
+    const a=document.createElement('span');a.className='entry-time';a.textContent=fmtDate(e.occurredAt,true);
+    const b=document.createElement('span');b.className='entry-type';b.textContent=labels[e.kind]||e.kind;
+    const c=document.createElement('span');c.className='entry-desc';c.textContent=description(e)+(e.note?' · '+e.note:'');
+    row.append(a,b,c);return row;
+  }
+
+  function renderToday(){
+    const entries=sortedEntries();
+    $('todayDate').textContent=new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long',weekday:'long'}).toUpperCase();
+    const configs=[['Вес','weightKg','кг'],['Талия','waistCm','см'],['Давление','systolicMmHg','мм рт. ст.']];
+    $('metrics').replaceChildren(...configs.map(([label,key,unit])=>{
+      const e=latest(entries,key),cell=document.createElement('div');cell.className='metric';
+      cell.innerHTML='<div class="metric-label">'+label+'</div>';
+      if(!e){cell.insertAdjacentHTML('beforeend','<span class="metric-empty">Нет замера</span>');return cell;}
+      const val=key==='systolicMmHg'?n(e.data.systolicMmHg)+'/'+n(e.data.diastolicMmHg):n(e.data[key]);
+      const line=document.createElement('div');line.className='metric-line';
+      line.innerHTML='<span class="metric-value">'+val+'</span><span class="metric-unit">'+unit+'</span>';
+      const date=document.createElement('div');date.className='metric-date';date.textContent=fmtDate(e.occurredAt,true);
+      cell.append(line,date);return cell;
+    }));
+    const stream=$('stream');stream.replaceChildren();
+    if(!entries.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Здесь появятся тестовые наблюдения.';stream.append(empty);}
+    entries.slice(0,7).forEach(e=>stream.append(entryRow(e)));
+  }
+
+  function pointsFor(entries,key){
+    return entries.filter(e=>e.data?.[key]!==null&&e.data?.[key]!==undefined).map(e=>({t:Date.parse(e.occurredAt),v:Number(e.data[key]),entry:e})).sort((a,b)=>a.t-b.t);
+  }
+  function chartSeries(entries){
+    if(dynMode==='body')return {title:'Вес / талия · 14 дней',shared:false,series:[
+      {name:'вес · кг',key:'weightKg',className:'',points:pointsFor(entries,'weightKg')},
+      {name:'талия · см',key:'waistCm',className:'secondary',points:pointsFor(entries,'waistCm')}
+    ]};
+    if(dynMode==='pressure')return {title:'Давление · 14 дней',shared:true,series:[
+      {name:'систолическое',key:'systolicMmHg',className:'',points:pointsFor(entries,'systolicMmHg')},
+      {name:'диастолическое',key:'diastolicMmHg',className:'secondary',points:pointsFor(entries,'diastolicMmHg')}
+    ]};
+    if(dynMode==='pulse')return {title:'Пульс / HRV · 14 дней',shared:false,series:[
+      {name:'пульс · уд/мин',key:'pulseBpm',className:'',points:pointsFor(entries,'pulseBpm')},
+      {name:'HRV · мс',key:'hrvMs',className:'secondary',points:pointsFor(entries,'hrvMs')}
+    ]};
+    return null;
+  }
+  function renderChart(spec){
+    const host=$('chartCard');host.replaceChildren();
+    if(!spec){host.className='chart-card chart-empty';host.textContent='Качественные наблюдения остаются временной историей. Для них A2 не изобретает условный «балл здоровья».';return;}
+    host.className='chart-card';
+    const all=spec.series.flatMap(s=>s.points);
+    if(!all.length){host.className='chart-card chart-empty';host.textContent='Для выбранного тестового ряда пока нет точек.';return;}
+    const times=all.map(p=>p.t),minT=Math.min(...times),maxT=Math.max(...times),x0=26,x1=326,y0=18,y1=130;
+    const sharedValues=spec.shared?all.map(p=>p.v):null;
+    const extent=values=>{
+      let min=Math.min(...values),max=Math.max(...values);
+      if(min===max){min-=1;max+=1;}
+      const pad=(max-min)*.12;return [min-pad,max+pad];
+    };
+    const sharedExtent=sharedValues?extent(sharedValues):null;
+    const x=t=>maxT===minT?(x0+x1)/2:x0+(t-minT)/(maxT-minT)*(x1-x0);
+    const header=document.createElement('div');header.className='chart-head';
+    const b=document.createElement('b');b.textContent=spec.title;
+    const span=document.createElement('span');span.textContent='ФАКТИЧЕСКИЕ ТЕСТОВЫЕ ТОЧКИ';
+    header.append(b,span);host.append(header);
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 340 164');svg.classList.add('chart-svg');
+    [18,74,130].forEach(y=>{const line=document.createElementNS(svg.namespaceURI,'line');line.setAttribute('x1','26');line.setAttribute('x2','326');line.setAttribute('y1',String(y));line.setAttribute('y2',String(y));line.setAttribute('class','chart-grid');svg.append(line);});
+    spec.series.forEach(s=>{
+      if(!s.points.length)return;
+      const ex=sharedExtent||extent(s.points.map(p=>p.v));
+      const y=v=>y1-(v-ex[0])/(ex[1]-ex[0])*(y1-y0);
+      const poly=document.createElementNS(svg.namespaceURI,'polyline');
+      poly.setAttribute('points',s.points.map(p=>x(p.t).toFixed(1)+','+y(p.v).toFixed(1)).join(' '));
+      poly.setAttribute('class','chart-line '+s.className);svg.append(poly);
+      s.points.forEach(p=>{const c=document.createElementNS(svg.namespaceURI,'circle');c.setAttribute('cx',x(p.t).toFixed(1));c.setAttribute('cy',y(p.v).toFixed(1));c.setAttribute('r','3');c.setAttribute('class','chart-dot '+s.className);svg.append(c);});
+    });
+    const first=document.createElementNS(svg.namespaceURI,'text');first.setAttribute('x','26');first.setAttribute('y','154');first.setAttribute('class','chart-axis');first.textContent=new Date(minT).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
+    const last=document.createElementNS(svg.namespaceURI,'text');last.setAttribute('x','326');last.setAttribute('y','154');last.setAttribute('text-anchor','end');last.setAttribute('class','chart-axis');last.textContent=new Date(maxT).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
+    svg.append(first,last);host.append(svg);
+    const legend=document.createElement('div');legend.className='chart-legend';
+    spec.series.forEach(s=>{const item=document.createElement('span');const i=document.createElement('i');i.className=s.className;item.append(i,document.createTextNode(s.name));legend.append(item);});
+    host.append(legend);
+  }
+  function renderDynamics(){
+    const entries=sortedEntries();
+    document.querySelectorAll('[data-dyn]').forEach(b=>b.classList.toggle('active',b.dataset.dyn===dynMode));
+    renderChart(chartSeries(entries));
+    const stream=$('dynamicsStream');stream.replaceChildren();
+    let relevant=[];
+    if(dynMode==='body')relevant=entries.filter(e=>e.kind==='body');
+    else if(dynMode==='pressure')relevant=entries.filter(e=>e.kind==='pressure'&&e.data?.systolicMmHg!=null);
+    else if(dynMode==='pulse')relevant=entries.filter(e=>e.kind==='pressure'&&(e.data?.pulseBpm!=null||e.data?.hrvMs!=null));
+    else relevant=entries.filter(e=>e.kind==='feeling'||e.kind==='load');
+    if(!relevant.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Нет тестовых записей этого типа.';stream.append(empty);}
+    relevant.slice(0,8).forEach(e=>stream.append(entryRow(e)));
+  }
+
+  function renderReminders(){
+    const state=readState(),list=$('reminderList');list.replaceChildren();
+    $('reminderCount').textContent=state.reminders.length+' ТЕСТОВЫХ';
+    if(!state.reminders.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Здесь появятся выбранные действия.';list.append(empty);return;}
+    state.reminders.slice().sort((a,b)=>Date.parse(a.dueAt)-Date.parse(b.dueAt)).forEach(r=>{
+      const row=document.createElement('div');row.className='reminder-item'+(r.done?' done':'');
+      const check=document.createElement('button');check.type='button';check.className='reminder-check'+(r.done?' done':'');check.setAttribute('aria-label',r.done?'Вернуть в ожидающие':'Отметить выполненным');
+      check.addEventListener('click',()=>{const s=readState(),item=s.reminders.find(x=>x.id===r.id);if(item)item.done=!item.done;writeState(s);renderReminders();haptic();});
+      const main=document.createElement('div');main.className='reminder-main';const b=document.createElement('b');b.textContent=r.text;const p=document.createElement('p');p.textContent=(r.note||'')+(r.repeat!=='none'?' · '+(r.repeat==='daily'?'ежедневно':'еженедельно'):'');main.append(b,p);
+      const due=document.createElement('span');due.className='reminder-due';due.textContent=fmtDate(r.dueAt,true);
+      row.append(check,main,due);list.append(row);
+    });
+  }
+  function renderMedcard(){}
+
+  function setView(view){
+    if(sheetMode)closeSheet();
+    currentView=view;
+    document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===view+'View'));
+    document.querySelectorAll('[data-view]').forEach(b=>{const active=b.dataset.view===view;b.classList.toggle('active',active);active?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current');});
+    $('main').scrollTop=0;window.scrollTo(0,0);render();
+  }
+  function render(){renderToday();renderDynamics();renderReminders();renderMedcard();}
+
+  function field(label,name,type='text',value='',hint=''){
+    const wrap=document.createElement('div');wrap.className='field';
+    const lab=document.createElement('label');lab.htmlFor='f-'+name;lab.textContent=label;
+    const input=document.createElement(type==='textarea'?'textarea':type==='select'?'select':'input');
+    input.id='f-'+name;input.name=name;
+    if(type!=='textarea'&&type!=='select')input.type=type;
+    if(type!=='select')input.value=value??'';
+    wrap.append(lab,input);
+    if(hint){const note=document.createElement('div');note.className='field-hint';note.textContent=hint;wrap.append(note);}
+    return {wrap,input};
+  }
+  function selectField(label,name,value,options){
+    const item=field(label,name,'select');for(const [v,t] of options){const o=document.createElement('option');o.value=v;o.textContent=t;item.input.append(o);}item.input.value=value??'';return item;
+  }
+  function row2(...items){const row=document.createElement('div');row.className='row2';for(const item of items)row.append(item.wrap);return row;}
+  function capture(form,draft){for(const input of form.querySelectorAll('[name]'))draft.values[input.name]=input.value;draft.dirty=true;setClosingGuard();}
+  function numeric(value,label){
+    const t=String(value??'').trim();if(!t)return null;
+    if(!/^(?:\d+(?:[.,]\d*)?|[.,]\d+)$/.test(t))throw Error(label+': введите число без постороннего текста.');
+    const x=Number(t.replace(',','.'));if(!Number.isFinite(x)||x<0)throw Error(label+': неверное значение.');return x;
+  }
+
+  function showSheet(mode,title,kicker){
+    sheetMode=mode;$('sheetTitle').textContent=title;$('sheetKicker').textContent=kicker;$('sheetBody').replaceChildren();
+    $('sheetBackdrop').hidden=false;$('sheet').classList.add('open');$('sheet').setAttribute('aria-hidden','false');document.body.classList.add('sheet-open');
+    try{tg?.BackButton?.show?.();}catch{}
+  }
+  function closeSheet(){
+    sheetMode=null;document.querySelectorAll('.quick').forEach(b=>b.setAttribute('aria-pressed','false'));
+    $('sheet').classList.remove('open');$('sheet').setAttribute('aria-hidden','true');$('sheetBackdrop').hidden=true;document.body.classList.remove('sheet-open');
+    try{tg?.BackButton?.hide?.();}catch{}
+  }
+  function openEntry(kind){
+    const mode='entry:'+kind;if(sheetMode===mode){closeSheet();return;}
+    document.querySelectorAll('.quick').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.kind===kind)));
+    showSheet(mode,labels[kind],'БЫСТРАЯ ЗАПИСЬ · A2');buildEntryForm(kind);
+  }
+  function buildEntryForm(kind){
+    const host=$('sheetBody'),key='kind:'+kind;
+    const draft=drafts.get(key)||{dirty:false,values:{occurredLocal:localNow(),pressureMode:'pressure'}};
+    drafts.set(key,draft);const v=draft.values;
+    const form=document.createElement('form');form.noValidate=true;
+    const notice=document.createElement('p');notice.className='notice';notice.textContent='Прототип A2: запись сохраняется только в изолированном тестовом состоянии браузера.';form.append(notice);
+    if(kind==='body'){
+      const w=field('Вес · кг','weightKg','text',v.weightKg),waist=field('Талия · см','waistCm','text',v.waistCm);w.input.inputMode=waist.input.inputMode='decimal';form.append(row2(w,waist));
+    }else if(kind==='pressure'){
+      const modes=document.createElement('div');modes.className='mode-row';
+      for(const [mode,title] of [['pressure','Давление'],['pulse','Пульс / HRV']]){
+        const b=document.createElement('button');b.type='button';b.textContent=title;b.classList.toggle('active',(v.pressureMode||'pressure')===mode);
+        b.addEventListener('click',()=>{capture(form,draft);draft.values.pressureMode=mode;buildEntryForm(kind);});modes.append(b);
+      }
+      form.append(modes);
+      if((v.pressureMode||'pressure')==='pressure'){
+        const s=field('Систолическое','systolicMmHg','text',v.systolicMmHg),di=field('Диастолическое','diastolicMmHg','text',v.diastolicMmHg);s.input.inputMode=di.input.inputMode='decimal';form.append(row2(s,di));
+        const p=field('Пульс · необязательно','pulseBpm','text',v.pulseBpm);p.input.inputMode='decimal';form.append(p.wrap);
+      }else{
+        const p=field('Пульс · уд/мин','pulseBpm','text',v.pulseBpm),h=field('HRV · мс','hrvMs','text',v.hrvMs);p.input.inputMode=h.input.inputMode='decimal';form.append(row2(p,h));
+        form.append(selectField('Метод HRV','hrvMethod',v.hrvMethod,[['','Не указан'],['SDNN','SDNN'],['RMSSD','RMSSD']]).wrap,field('Контекст измерения · необязательно','context','text',v.context).wrap);
+      }
+    }else if(kind==='medicine'){
+      form.append(field('Что фактически принято','name','text',v.name).wrap,field('Доза / форма · ровно как указано','doseText','text',v.doseText).wrap);
+    }else if(kind==='load'){
+      const duration=field('Минуты · необязательно','durationMin','text',v.durationMin);duration.input.inputMode='decimal';
+      form.append(field('Что делал','name','text',v.name).wrap,row2(duration,selectField('Состояние после','after',v.after,[['','Не указано'],...Object.entries(effects)])));
+    }else form.append(field('Собственное наблюдение','text','textarea',v.text).wrap);
+    const when=field('Время события','occurredLocal','datetime-local',v.occurredLocal||localNow());form.append(when.wrap);
+    if(!['feeling','note'].includes(kind))form.append(field('Комментарий · необязательно','note','textarea',v.note).wrap);
+    const more=document.createElement('details');more.className='more';more.innerHTML='<summary>Дополнительно</summary>';
+    more.append(field('Прибор / источник · необязательно','device','text',v.device).wrap,field('Тема · необязательно','topic','text',v.topic).wrap);form.append(more);
+    const error=document.createElement('div');error.className='form-error';error.setAttribute('role','alert');form.append(error);
+    const actions=document.createElement('div');actions.className='form-actions';
+    const cancel=document.createElement('button');cancel.type='button';cancel.className='ghost';cancel.textContent='Отмена';
+    const save=document.createElement('button');save.type='submit';save.className='primary';save.textContent='Сохранить';actions.append(cancel,save);form.append(actions);host.replaceChildren(form);
+    form.addEventListener('input',()=>capture(form,draft));form.addEventListener('change',()=>capture(form,draft));
+    cancel.addEventListener('click',()=>{drafts.delete(key);setClosingGuard();closeSheet();});
+    form.addEventListener('submit',event=>{event.preventDefault();capture(form,draft);error.textContent='';try{saveDraft(kind,draft);drafts.delete(key);setClosingGuard();closeSheet();render();haptic('medium');flash('Тестовая запись сохранена');}catch(e){error.textContent=e.message;haptic('rigid');}});
+    requestAnimationFrame(()=>form.querySelector('input,textarea,select')?.focus());
+  }
+
+  function saveDraft(kind,draft){
+    const v=draft.values;if(!v.occurredLocal)throw Error('Проверьте дату и время события.');let data={};
+    if(kind==='body'){data={weightKg:numeric(v.weightKg,'Вес'),waistCm:numeric(v.waistCm,'Талия')};if(data.weightKg==null&&data.waistCm==null)throw Error('Укажите вес или талию.');}
+    else if(kind==='pressure'){
+      if((v.pressureMode||'pressure')==='pressure'){
+        data={systolicMmHg:numeric(v.systolicMmHg,'Систолическое'),diastolicMmHg:numeric(v.diastolicMmHg,'Диастолическое'),pulseBpm:numeric(v.pulseBpm,'Пульс'),hrvMs:null,hrvMethod:null,context:null};
+        if(data.systolicMmHg==null||data.diastolicMmHg==null)throw Error('Для давления нужны оба значения.');
+      }else{
+        data={systolicMmHg:null,diastolicMmHg:null,pulseBpm:numeric(v.pulseBpm,'Пульс'),hrvMs:numeric(v.hrvMs,'HRV'),hrvMethod:v.hrvMs?v.hrvMethod||null:null,context:v.context||null};
+        if(data.pulseBpm==null&&data.hrvMs==null)throw Error('Укажите пульс или HRV.');
+      }
+    }else if(kind==='medicine'){data={name:(v.name||'').trim(),doseText:(v.doseText||'').trim()};if(!data.name)throw Error('Укажите название того, что принято.');}
+    else if(kind==='load'){data={name:(v.name||'').trim(),durationMin:numeric(v.durationMin,'Длительность'),after:v.after||null};if(!data.name)throw Error('Укажите действие.');}
+    else{data={text:(v.text||'').trim()};if(!data.text)throw Error('Введите собственный текст наблюдения.');}
+    const state=readState();state.entries.push({id:uid(),kind,occurredAt:new Date(v.occurredLocal).toISOString(),createdAt:new Date().toISOString(),data,note:v.note||'',device:v.device||null,topic:v.topic||null,source:{channel:'manual',device:v.device||null}});writeState(state);
+  }
+
+  function openReminder(){
+    showSheet('reminder','Новое напоминание','НАПОМИНАНИЕ · A2');
+    const host=$('sheetBody'),form=document.createElement('form');form.noValidate=true;
+    const notice=document.createElement('p');notice.className='notice';notice.textContent='Только уже выбранное действие. A2 не создаёт назначений и не отправляет системные уведомления.';form.append(notice);
+    const textField=field('Что сделать','reminderText','text','');
+    const due=field('Срок','reminderDue','datetime-local',localNow(Date.now()+2*3600000));
+    const repeat=selectField('Повтор','reminderRepeat','none',[['none','Нет'],['daily','Ежедневно'],['weekly','Еженедельно']]);
+    const note=field('Заметка · необязательно','reminderNote','textarea','');
+    form.append(textField.wrap,due.wrap,repeat.wrap,note.wrap);
+    const error=document.createElement('div');error.className='form-error';form.append(error);
+    const actions=document.createElement('div');actions.className='form-actions';
+    const cancel=document.createElement('button');cancel.type='button';cancel.className='ghost';cancel.textContent='Отмена';
+    const save=document.createElement('button');save.type='submit';save.className='primary';save.textContent='Сохранить';
+    actions.append(cancel,save);form.append(actions);host.append(form);
+    cancel.addEventListener('click',closeSheet);
+    form.addEventListener('submit',e=>{e.preventDefault();error.textContent='';const text=textField.input.value.trim();if(!text){error.textContent='Укажите действие.';return;}if(!due.input.value){error.textContent='Укажите срок для тестового напоминания.';return;}
+      const state=readState();state.reminders.push({id:uid(),text,note:note.input.value.trim(),dueAt:new Date(due.input.value).toISOString(),repeat:repeat.input.value,done:false});writeState(state);closeSheet();renderReminders();haptic('medium');flash('Тестовое напоминание сохранено');
+    });
+    requestAnimationFrame(()=>textField.input.focus());
+  }
+
+  function openTransferPreview(){
+    showSheet('transfer','Тестовый пакет','ПЕРЕДАЧА ЦЕЛИТЕЛЮ · A2');
+    const host=$('sheetBody'),notice=document.createElement('p');notice.className='notice';
+    notice.textContent='Это только предпросмотр. Никакая отправка, синхронизация с Mac или изменение Медкарты не выполняются.';
+    const state=readState(),entries=state.entries.slice().sort((a,b)=>Date.parse(b.occurredAt)-Date.parse(a.occurredAt)).slice(0,8);
+    const pre=document.createElement('pre');pre.className='preview-block';
+    pre.textContent=['# Наблюдения из Пульта Целителя','',...entries.map(e=>fmtDate(e.occurredAt,true)+' · '+(labels[e.kind]||e.kind)+' · '+description(e))].join('\n');
+    const close=document.createElement('button');close.type='button';close.className='primary full';close.textContent='Закрыть предпросмотр';close.addEventListener('click',closeSheet);
+    host.append(notice,pre,close);
+  }
+
+  document.querySelectorAll('.quick').forEach(b=>{b.setAttribute('aria-pressed','false');b.addEventListener('click',()=>{haptic();openEntry(b.dataset.kind);});});
+  document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+  document.querySelectorAll('[data-dyn]').forEach(b=>b.addEventListener('click',()=>{dynMode=b.dataset.dyn;renderDynamics();haptic();}));
+  $('closeSheet').addEventListener('click',closeSheet);$('sheetBackdrop').addEventListener('click',closeSheet);
+  $('addReminder').addEventListener('click',openReminder);$('previewTransfer').addEventListener('click',openTransferPreview);
+  $('resetDemo').addEventListener('click',()=>{
+    if(!window.confirm('Сбросить только тестовые данные A2?'))return;
+    writeState(defaultState());drafts.clear();setClosingGuard();render();flash('Тестовые данные восстановлены');
+  });
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sheetMode){e.preventDefault();closeSheet();}});
+  initTelegram();setView('today');
+})();
+
+\n</script>\n</body>
+</html>
+
