@@ -6,28 +6,50 @@
   const OUTBOX_KEY='pult_b2_outbox_v1';
   const PAIR_KEY='pult_b2_pairing_v1';
   let callbacks={applyProjection:null,onStatus:null};
-  let syncing=false,lastError=null,lastDeliveryAt=null;
+  let syncing=false,lastError=null,lastDeliveryAt=null,pairingCache=null;
 
   const apiBase=()=>String(window.PULT_B2_API_BASE||'').replace(/\/+$/,'');
   const fallbackKey=key=>'pult-b2-fallback-'+key;
 
-  function callbackStorage(storage,method,key,value){
+  function callbackStorage(storage,method,key,value,timeoutMs=1800){
     return new Promise((resolve,reject)=>{
+      let settled=false;
+      const timer=setTimeout(()=>{if(!settled){settled=true;reject(new Error('STORAGE_TIMEOUT'));}},timeoutMs);
       try{
-        const done=(error,result)=>error?reject(new Error(String(error))):resolve(result);
+        const done=(error,result)=>{
+          if(settled)return;settled=true;clearTimeout(timer);
+          error?reject(new Error(String(error))):resolve(result);
+        };
         if(method==='getItem')storage.getItem(key,done);
         else if(method==='setItem')storage.setItem(key,value,done);
         else if(method==='removeItem')storage.removeItem(key,done);
-      }catch(error){reject(error);}
+      }catch(error){if(!settled){settled=true;clearTimeout(timer);reject(error);}}
     });
   }
-  async function deviceGet(key){
-    if(inTelegram&&tg?.DeviceStorage?.getItem)return callbackStorage(tg.DeviceStorage,'getItem',key);
+  function localGet(key){
     try{return localStorage.getItem(fallbackKey(key));}catch{return null;}
   }
+  function localSet(key,value){
+    try{localStorage.setItem(fallbackKey(key),value);return true;}catch{return false;}
+  }
+  async function deviceGet(key){
+    const local=localGet(key);
+    if(local!==null)return local;
+    if(inTelegram&&tg?.DeviceStorage?.getItem){
+      try{
+        const value=await callbackStorage(tg.DeviceStorage,'getItem',key);
+        if(value!==null&&value!==undefined)localSet(key,value);
+        return value;
+      }catch{}
+    }
+    return null;
+  }
   async function deviceSet(key,value){
-    if(inTelegram&&tg?.DeviceStorage?.setItem)return callbackStorage(tg.DeviceStorage,'setItem',key,value);
-    localStorage.setItem(fallbackKey(key),value);return true;
+    if(!localSet(key,value))throw new Error('Не удалось сохранить локальную очередь.');
+    if(inTelegram&&tg?.DeviceStorage?.setItem){
+      void callbackStorage(tg.DeviceStorage,'setItem',key,value).catch(()=>{});
+    }
+    return true;
   }
   async function syntheticFallbackGet(key){
     if(window.PULT_B2_SYNTHETIC_ONLY!==true)return null;
@@ -67,14 +89,19 @@
     return {version:1,mobileAuth:parts[1],aesKey:parts[2]};
   }
   async function getPairing(){
+    if(pairingCache)return pairingCache;
     const raw=await secureGet(PAIR_KEY);
     if(!raw)return null;
-    try{const value=JSON.parse(raw);if(value?.version===1&&value.mobileAuth&&value.aesKey)return value;}catch{}
+    try{
+      const value=JSON.parse(raw);
+      if(value?.version===1&&value.mobileAuth&&value.aesKey){pairingCache=value;return value;}
+    }catch{}
     return null;
   }
   async function setPairing(bundle){
     const value=parsePairing(bundle);
     await secureSet(PAIR_KEY,JSON.stringify(value));
+    pairingCache=value;
     lastError=null;await emitStatus();
     return value;
   }
@@ -191,13 +218,11 @@
       if(projection)callbacks.applyProjection?.(projection);
       lastError=null;
       if(confirmed.length)lastDeliveryAt=new Date().toISOString();
-      if(!quiet&&confirmed.length&&outbox.length===0)callbacks.onStatus?.({message:'Доставлено на Mac'});
       return {ok:true,pending:outbox.length,confirmed,projectionApplied:!!projection};
     }catch(error){
       lastError=error.message||String(error);
-      if(!quiet)callbacks.onStatus?.({message:lastError,error:true});
       return {ok:false,error:lastError,pending:(await readOutbox()).length,confirmed:[]};
-    }finally{syncing=false;await emitStatus();}
+    }finally{syncing=false;void emitStatus();}
   }
   async function emitStatus(){
     const [pair,outbox]=await Promise.all([getPairing(),readOutbox()]);
