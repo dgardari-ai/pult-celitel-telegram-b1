@@ -1,6 +1,6 @@
-@font-face{font-family:"Alumni Sans";src:url("../src/fonts/AlumniSans.ttf") format("truetype");font-weight:100 900;font-display:swap}
-@font-face{font-family:"Golos Text";src:url("../src/fonts/GolosText.ttf") format("truetype");font-weight:100 900;font-display:swap}
-@font-face{font-family:"PT Mono";src:url("../src/fonts/PTMono.ttf") format("truetype");font-weight:400;font-display:swap}
+@font-face{font-family:"Alumni Sans";src:url("fonts/AlumniSans.ttf") format("truetype");font-weight:100 900;font-display:swap}
+@font-face{font-family:"Golos Text";src:url("fonts/GolosText.ttf") format("truetype");font-weight:100 900;font-display:swap}
+@font-face{font-family:"PT Mono";src:url("fonts/PTMono.ttf") format("truetype");font-weight:400;font-display:swap}
 
 :root{
   --bg:#F5F6F7;--surface:#FAFBFC;--surface2:#ECEFF2;--ink:#16181C;--muted:#66707B;
