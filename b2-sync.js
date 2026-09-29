@@ -29,14 +29,34 @@
     if(inTelegram&&tg?.DeviceStorage?.setItem)return callbackStorage(tg.DeviceStorage,'setItem',key,value);
     localStorage.setItem(fallbackKey(key),value);return true;
   }
+  async function syntheticFallbackGet(key){
+    if(window.PULT_B2_SYNTHETIC_ONLY!==true)return null;
+    try{
+      if(inTelegram&&tg?.DeviceStorage?.getItem)return await callbackStorage(tg.DeviceStorage,'getItem','synthetic-'+key);
+    }catch{}
+    try{return localStorage.getItem(fallbackKey('synthetic-'+key));}catch{return null;}
+  }
+  async function syntheticFallbackSet(key,value){
+    if(window.PULT_B2_SYNTHETIC_ONLY!==true)throw new Error('Защищённое хранилище недоступно.');
+    try{
+      if(inTelegram&&tg?.DeviceStorage?.setItem)return await callbackStorage(tg.DeviceStorage,'setItem','synthetic-'+key,value);
+    }catch{}
+    localStorage.setItem(fallbackKey('synthetic-'+key),value);return true;
+  }
   async function secureGet(key){
-    if(inTelegram&&tg?.SecureStorage?.getItem)return callbackStorage(tg.SecureStorage,'getItem',key);
-    if(inTelegram)return null;
+    if(inTelegram&&tg?.SecureStorage?.getItem){
+      try{return await callbackStorage(tg.SecureStorage,'getItem',key);}
+      catch(error){if(String(error?.message||error)!=='UNSUPPORTED')throw error;}
+    }
+    if(inTelegram)return syntheticFallbackGet(key);
     try{return localStorage.getItem(fallbackKey('secure-'+key));}catch{return null;}
   }
   async function secureSet(key,value){
-    if(inTelegram&&tg?.SecureStorage?.setItem)return callbackStorage(tg.SecureStorage,'setItem',key,value);
-    if(inTelegram)throw new Error('SecureStorage недоступен в этом Telegram-клиенте.');
+    if(inTelegram&&tg?.SecureStorage?.setItem){
+      try{return await callbackStorage(tg.SecureStorage,'setItem',key,value);}
+      catch(error){if(String(error?.message||error)!=='UNSUPPORTED')throw error;}
+    }
+    if(inTelegram)return syntheticFallbackSet(key,value);
     localStorage.setItem(fallbackKey('secure-'+key),value);return true;
   }
 
